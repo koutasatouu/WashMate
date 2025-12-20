@@ -2,8 +2,8 @@
 #include <string>
 #include <stack>
 #include <queue>
-#include <iomanip>   // setw
-#include <limits>    // numeric_limits
+#include <iomanip>   
+#include <limits>    
 #include <utility>
 using namespace std;
 
@@ -51,9 +51,9 @@ void tambahCucian(const string& nama, const string& jenis, float berat) {
     Cucian* baru = new Cucian(idCounter++, nama, jenis, berat);
     if (!head) head = baru;
     else {
-        Cucian* tmp = head;
-        while (tmp->next) tmp = tmp->next;
-        tmp->next = baru;
+        Cucian* current = head;
+        while (current->next) current = current->next;
+        current->next = baru;
     }
     // Masukkan ke antrian otomatis
     antrianIds.push(baru->id);
@@ -73,10 +73,10 @@ void tambahCucian(const string& nama, const string& jenis, float berat) {
 }
 
 Cucian* cariCucianById(int id) {
-    Cucian* tmp = head;
-    while (tmp) {
-        if (tmp->id == id) return tmp;
-        tmp = tmp->next;
+    Cucian* current = head;
+    while (current) {
+        if (current->id == id) return current;
+        current = current->next;
     }
     return nullptr;
 }
