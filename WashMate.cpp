@@ -572,9 +572,9 @@ void tampilMenuUtama()
     cout << "========================================" << endl;
     cout << "1. Input Transaksi" << endl;
     cout << "2. Proses Transaksi" << endl;
-    cout << "3. Lihat Riwayat Transaksi" << endl;
-    cout << "4. Lihat Riwayat Proses" << endl;
-    cout << "5. Cari Transaksi" << endl;
+    cout << "3. Cari Transaksi" << endl;
+    cout << "4. Lihat Riwayat Transaksi" << endl;
+    cout << "5. Lihat Riwayat Proses" << endl;
     cout << "6. Keluar" << endl;
     cout << "========================================" << endl;
     cout << "Pilihan: ";
@@ -735,15 +735,16 @@ int main()
         }
         else if (pilihan == 3)
         {
-            lihatRiwayatTransaksi(riwayat);
+            cariTransaksi(riwayat);
+            
         }
         else if (pilihan == 4)
         {
-            lihatRiwayatProses(stackProses);
+            lihatRiwayatTransaksi(riwayat);
         }
         else if (pilihan == 5)
         {
-            cariTransaksi(riwayat);
+            lihatRiwayatProses(stackProses);
         }
         else if (pilihan == 6)
         {
