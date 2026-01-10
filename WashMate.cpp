@@ -1,760 +1,545 @@
-// test update
 #include <iostream>
 #include <string>
+#include <fstream>
+
 using namespace std;
 
-// ============ STRUCT DEFINITIONS ============
-
-// Struct untuk Transaksi (Double Linked List)
-struct Transaksi
+// ==========================================
+// 1. STRUCT & HELPER
+// ==========================================
+struct DetailLayanan
 {
-    int id;
-    string nama;
-    string jenis;
-    float berat;
-    int totalHarga;
-    Transaksi *prev;
-    Transaksi *next;
+    string namaLayanan;
+    int hargaPerKg;
 };
 
-// Struct untuk Queue (Single Linked List)
 struct Pelanggan
 {
     int id;
-    string nama;
-    string layanan;
-    Pelanggan *next;
+    string nama; // KEY UTAMA UNTUK BST SEKARANG
+    string noTelp;
+    string namaPaket;
+    float beratKg;
+    int totalBayar;
+    int tahapan;
 };
 
-// Struct untuk BST
-struct Node
+string getStatusTeks(int t)
 {
-    int idTransaksi;
-    string nama;
-    Node *left;
-    Node *right;
-};
+    if (t == 0)
+        return "Menunggu Antrian";
+    if (t == 1)
+        return "Sedang Dicuci";
+    if (t == 2)
+        return "Sedang Disetrika";
+    if (t == 3)
+        return "Packing / Siap Kirim";
+    if (t == 4)
+        return "SUDAH TERKIRIM (Selesai)";
+    return "Unknown";
+}
 
-// ============ ARRAY - MENU DAN HARGA ============
-class MenuArray
+// ==========================================
+// 2. CLASS MENU (ARRAY)
+// ==========================================
+class ManajemenMenu
 {
 private:
-    string menu[10];
-    int harga[10];
-    int jumlahLayanan;
+    DetailLayanan daftarMenu[10];
+    int jumlahMenu;
 
 public:
-    MenuArray()
-    {
-        jumlahLayanan = 0;
-    }
+    ManajemenMenu() { jumlahMenu = 0; }
 
-    // Fungsi untuk menampilkan menu
-    void tampilMenu()
+    void tambahMenu(string nama, int harga)
     {
-        cout << "\n========== DAFTAR MENU LAYANAN ==========" << endl;
-        for (int i = 0; i < jumlahLayanan; i++)
+        if (jumlahMenu < 10)
         {
-            cout << (i + 1) << ". " << menu[i] << " - Rp" << harga[i] << endl;
+            daftarMenu[jumlahMenu].namaLayanan = nama;
+            daftarMenu[jumlahMenu].hargaPerKg = harga;
+            jumlahMenu++;
         }
-        cout << "========================================" << endl;
     }
 
-    // Fungsi untuk mendapatkan harga berdasarkan layanan
-    int getHarga(string layanan)
+    void tampilkanDaftar()
     {
-        for (int i = 0; i < jumlahLayanan; i++)
+        cout << "\n--- PILIH LAYANAN ---\n";
+        for (int i = 0; i < jumlahMenu; i++)
         {
-            if (menu[i] == layanan)
-            {
-                return harga[i];
-            }
+            cout << i + 1 << ". " << daftarMenu[i].namaLayanan
+                 << " \t[Rp " << daftarMenu[i].hargaPerKg << " /kg]\n";
         }
-        return -1; // Layanan tidak ditemukan
     }
 
-    // Fungsi untuk validasi layanan
-    bool validasiLayanan(string layanan)
+    DetailLayanan getLayanan(int index)
     {
-        for (int i = 0; i < jumlahLayanan; i++)
+        if (index >= 0 && index < jumlahMenu)
+            return daftarMenu[index];
+        DetailLayanan k;
+        k.namaLayanan = "";
+        return k;
+    }
+
+    int getJumlah() { return jumlahMenu; }
+};
+
+// ==========================================
+// 3. LINKED LIST (ARSIP)
+// ==========================================
+struct NodeLL
+{
+    Pelanggan data;
+    NodeLL *next;
+};
+
+class LinkedListArsip
+{
+private:
+    NodeLL *head;
+
+public:
+    LinkedListArsip() { head = NULL; }
+
+    void simpanPermanen(Pelanggan p)
+    {
+        NodeLL *newNode = new NodeLL();
+        newNode->data = p;
+        newNode->next = NULL;
+        if (head == NULL)
         {
-            if (menu[i] == layanan)
-            {
+            head = newNode;
+        }
+        else
+        {
+            NodeLL *temp = head;
+            while (temp->next != NULL)
+                temp = temp->next;
+            temp->next = newNode;
+        }
+    }
+
+    void tampilkanLaporan()
+    {
+        cout << "\n=== LAPORAN TRANSAKSI SELESAI ===\n";
+        NodeLL *temp = head;
+        while (temp != NULL)
+        {
+            cout << "[LUNAS] " << temp->data.nama << " | ID:" << temp->data.id
+                 << " | Rp" << temp->data.totalBayar << endl;
+            temp = temp->next;
+        }
+    }
+
+    // CEK DUPLIKAT DI ARSIP
+    bool isNamaExist(string namaCari)
+    {
+        NodeLL *temp = head;
+        while (temp != NULL)
+        {
+            if (temp->data.nama == namaCari)
                 return true;
-            }
+            temp = temp->next;
         }
         return false;
     }
 
-    // Fungsi untuk menambah menu
-    void tambahLayanan(string nama, int hargaLayanan)
+    void saveToFile()
     {
-        if (jumlahLayanan < 10)
+        ofstream file("laporan_final.txt");
+        NodeLL *temp = head;
+        while (temp != NULL)
         {
-            menu[jumlahLayanan] = nama;
-            harga[jumlahLayanan] = hargaLayanan;
-            jumlahLayanan++;
+            file << temp->data.id << "|" << temp->data.nama << "|LUNAS" << endl;
+            temp = temp->next;
         }
-    }
-
-    int getJumlahLayanan()
-    {
-        return jumlahLayanan;
-    }
-
-    // Fungsi untuk mendapatkan nama layanan berdasarkan nomor
-    string getNamaLayananByNomor(int nomor)
-    {
-        if (nomor > 0 && nomor <= jumlahLayanan)
-        {
-            return menu[nomor - 1];
-        }
-        return ""; // Nomor tidak valid
-    }
-
-    // Fungsi untuk mendapatkan harga berdasarkan nomor
-    int getHargaByNomor(int nomor)
-    {
-        if (nomor > 0 && nomor <= jumlahLayanan)
-        {
-            return harga[nomor - 1];
-        }
-        return -1; // Nomor tidak valid
+        file.close();
     }
 };
 
-// ============ QUEUE - SINGLE LINKED LIST ============
-class QueuePelanggan
+// ==========================================
+// 4. BST (PENCARIAN VIA NAMA) - UPDATED
+// ==========================================
+struct NodeBST
 {
-private:
-    Pelanggan *front;
-    Pelanggan *rear;
-
-public:
-    QueuePelanggan()
-    {
-        front = NULL;
-        rear = NULL;
-    }
-
-    // Fungsi untuk menambah pelanggan ke antrian
-    void enqueue(int id, string nama, string layanan)
-    {
-        Pelanggan *nodeBaru = new Pelanggan();
-        nodeBaru->id = id;
-        nodeBaru->nama = nama;
-        nodeBaru->layanan = layanan;
-        nodeBaru->next = NULL;
-
-        if (isEmptyQueue())
-        {
-            front = nodeBaru;
-            rear = nodeBaru;
-        }
-        else
-        {
-            rear->next = nodeBaru;
-            rear = nodeBaru;
-        }
-        cout << "Pelanggan " << nama << " masuk antrian (ID: " << id << ")" << endl;
-    }
-
-    // Fungsi untuk mengeluarkan pelanggan dari antrian
-    Pelanggan *dequeue()
-    {
-        if (isEmptyQueue())
-        {
-            cout << "Antrian kosong!" << endl;
-            return NULL;
-        }
-
-        Pelanggan *temp = front;
-        front = front->next;
-
-        if (front == NULL)
-        {
-            rear = NULL;
-        }
-
-        cout << "Pelanggan " << temp->nama << " mulai diproses" << endl;
-        return temp;
-    }
-
-    // Fungsi untuk cek antrian kosong
-    bool isEmptyQueue()
-    {
-        return front == NULL;
-    }
-
-    // Fungsi untuk menampilkan antrian
-    void tampilAntrian()
-    {
-        if (isEmptyQueue())
-        {
-            cout << "\nAntrian kosong!" << endl;
-            return;
-        }
-
-        cout << "\n========== DAFTAR ANTRIAN PELANGGAN ==========" << endl;
-        Pelanggan *current = front;
-        int nomor = 1;
-        while (current != NULL)
-        {
-            cout << nomor << ". ID: " << current->id << " | Nama: " << current->nama
-                 << " | Layanan: " << current->layanan << endl;
-            current = current->next;
-            nomor++;
-        }
-        cout << "==============================================" << endl;
-    }
-
-    // Destructor
-    ~QueuePelanggan()
-    {
-        Pelanggan *current = front;
-        while (current != NULL)
-        {
-            Pelanggan *temp = current;
-            current = current->next;
-            delete temp;
-        }
-    }
+    Pelanggan data;
+    NodeBST *left, *right;
 };
 
-// ============ DOUBLE LINKED LIST - TRANSAKSI ============
-class HistoriTransaksi
+class BSTPencarian
 {
 private:
-    Transaksi *head;
-    Transaksi *tail;
+    NodeBST *root;
 
-public:
-    HistoriTransaksi()
-    {
-        head = NULL;
-        tail = NULL;
-    }
-
-    // Fungsi untuk menambah transaksi
-    void tambahTransaksi(int id, string nama, string jenis, float berat, int totalHarga)
-    {
-        Transaksi *nodeBaru = new Transaksi();
-        nodeBaru->id = id;
-        nodeBaru->nama = nama;
-        nodeBaru->jenis = jenis;
-        nodeBaru->berat = berat;
-        nodeBaru->totalHarga = totalHarga;
-        nodeBaru->prev = NULL;
-        nodeBaru->next = NULL;
-
-        if (head == NULL)
-        {
-            head = nodeBaru;
-            tail = nodeBaru;
-        }
-        else
-        {
-            tail->next = nodeBaru;
-            nodeBaru->prev = tail;
-            tail = nodeBaru;
-        }
-        cout << "Transaksi ID " << id << " berhasil ditambahkan" << endl;
-    }
-
-    // Fungsi untuk menghapus transaksi berdasarkan ID
-    void hapusTransaksi(int id)
-    {
-        if (head == NULL)
-        {
-            cout << "Riwayat transaksi kosong!" << endl;
-            return;
-        }
-
-        Transaksi *current = head;
-        while (current != NULL && current->id != id)
-        {
-            current = current->next;
-        }
-
-        if (current == NULL)
-        {
-            cout << "Transaksi dengan ID " << id << " tidak ditemukan!" << endl;
-            return;
-        }
-
-        if (current->prev != NULL)
-        {
-            current->prev->next = current->next;
-        }
-        else
-        {
-            head = current->next;
-        }
-
-        if (current->next != NULL)
-        {
-            current->next->prev = current->prev;
-        }
-        else
-        {
-            tail = current->prev;
-        }
-
-        cout << "Transaksi ID " << id << " berhasil dihapus" << endl;
-        delete current;
-    }
-
-    // Fungsi untuk menampilkan semua transaksi
-    void tampilHistori()
-    {
-        if (head == NULL)
-        {
-            cout << "\nRiwayat transaksi kosong!" << endl;
-            return;
-        }
-
-        cout << "\n========== RIWAYAT TRANSAKSI ==========" << endl;
-        Transaksi *current = head;
-        int nomor = 1;
-        while (current != NULL)
-        {
-            cout << nomor << ". ID: " << current->id << " | Nama: " << current->nama
-                 << " | Jenis: " << current->jenis << " | Berat: " << current->berat
-                 << "kg | Total: Rp" << current->totalHarga << endl;
-            current = current->next;
-            nomor++;
-        }
-        cout << "========================================" << endl;
-    }
-
-    // Fungsi untuk mencari transaksi berdasarkan ID
-    Transaksi *cariTransaksiByID(int id)
-    {
-        Transaksi *current = head;
-        while (current != NULL)
-        {
-            if (current->id == id)
-            {
-                cout << "Transaksi ditemukan - Nama: " << current->nama
-                     << " | Jenis: " << current->jenis << endl;
-                return current;
-            }
-            current = current->next;
-        }
-        cout << "Transaksi dengan ID " << id << " tidak ditemukan!" << endl;
-        return NULL;
-    }
-
-    // Destructor
-    ~HistoriTransaksi()
-    {
-        Transaksi *current = head;
-        while (current != NULL)
-        {
-            Transaksi *temp = current;
-            current = current->next;
-            delete temp;
-        }
-    }
-};
-
-// ============ STACK - PROSES BERDASARKAN ARRAY ============
-class StackProses
-{
-private:
-    string proses[10];
-    int top;
-
-public:
-    StackProses()
-    {
-        top = -1;
-    }
-
-    // Fungsi untuk push - lanjut tahap
-    void pushProses(string tahapProses)
-    {
-        if (top < 9)
-        {
-            top++;
-            proses[top] = tahapProses;
-            cout << "Proses '" << tahapProses << "' ditambahkan ke tahap pengerjaan" << endl;
-        }
-        else
-        {
-            cout << "Stack sudah penuh!" << endl;
-        }
-    }
-
-    // Fungsi untuk pop - undo / rollback
-    string popProses()
-    {
-        if (isEmptyStack())
-        {
-            cout << "Tidak ada proses untuk di-undo!" << endl;
-            return "";
-        }
-        string prosesDihapus = proses[top];
-        top--;
-        cout << "Proses '" << prosesDihapus << "' di-rollback" << endl;
-        return prosesDihapus;
-    }
-
-    // Fungsi untuk peek - status saat ini
-    string peekProses()
-    {
-        if (isEmptyStack())
-        {
-            cout << "Tidak ada proses yang sedang berjalan!" << endl;
-            return "";
-        }
-        cout << "Status saat ini: " << proses[top] << endl;
-        return proses[top];
-    }
-
-    // Fungsi untuk cek stack kosong
-    bool isEmptyStack()
-    {
-        return top == -1;
-    }
-
-    // Fungsi untuk menampilkan semua tahap proses
-    void tampilProses()
-    {
-        if (isEmptyStack())
-        {
-            cout << "\nTidak ada proses yang sedang berjalan!" << endl;
-            return;
-        }
-
-        cout << "\n========== TAHAP PROSES PENGERJAAN ==========" << endl;
-        for (int i = 0; i <= top; i++)
-        {
-            cout << (i + 1) << ". " << proses[i] << endl;
-        }
-        cout << "==============================================" << endl;
-    }
-};
-
-// ============ BINARY SEARCH TREE - TRANSAKSI ============
-class BSTTransaksi
-{
-private:
-    Node *root;
-
-    Node *insertBSTHelper(Node *node, int id, string nama)
+    NodeBST *insertRec(NodeBST *node, Pelanggan p)
     {
         if (node == NULL)
         {
-            Node *nodeBaru = new Node();
-            nodeBaru->idTransaksi = id;
-            nodeBaru->nama = nama;
-            nodeBaru->left = NULL;
-            nodeBaru->right = NULL;
-            return nodeBaru;
+            NodeBST *n = new NodeBST();
+            n->data = p;
+            n->left = n->right = NULL;
+            return n;
         }
+        // LOGIKA SORTING BERDASARKAN STRING (Alphabetical)
+        if (p.nama < node->data.nama)
+            node->left = insertRec(node->left, p);
+        else if (p.nama > node->data.nama)
+            node->right = insertRec(node->right, p);
 
-        if (id < node->idTransaksi)
-        {
-            node->left = insertBSTHelper(node->left, id, nama);
-        }
-        else if (id > node->idTransaksi)
-        {
-            node->right = insertBSTHelper(node->right, id, nama);
-        }
-        else
-        {
-            cout << "ID transaksi sudah ada!" << endl;
-            return node;
-        }
         return node;
     }
 
-    Node *searchBSTHelper(Node *node, int id)
+    void searchRec(NodeBST *node, string namaCari)
     {
         if (node == NULL)
         {
-            return NULL;
+            cout << "Nama '" << namaCari << "' tidak ditemukan di arsip.\n";
+            return;
         }
 
-        if (id == node->idTransaksi)
+        if (node->data.nama == namaCari)
         {
-            return node;
+            cout << "\n=== HASIL PENCARIAN (BST BY NAME) ===\n";
+            cout << "Nama     : " << node->data.nama << endl;
+            cout << "ID       : " << node->data.id << endl;
+            cout << "No Telp  : " << node->data.noTelp << endl;
+            cout << "Paket    : " << node->data.namaPaket << endl;
+            cout << "Status   : " << getStatusTeks(node->data.tahapan) << endl;
         }
-        else if (id < node->idTransaksi)
+        // Logic pencarian string (Kiri lebih kecil abjadnya, Kanan lebih besar)
+        else if (namaCari < node->data.nama)
         {
-            return searchBSTHelper(node->left, id);
+            searchRec(node->left, namaCari);
         }
         else
         {
-            return searchBSTHelper(node->right, id);
+            searchRec(node->right, namaCari);
         }
-    }
-
-    void inorderTraversalHelper(Node *node)
-    {
-        if (node == NULL)
-        {
-            return;
-        }
-
-        inorderTraversalHelper(node->left);
-        cout << "ID: " << node->idTransaksi << " | Nama: " << node->nama << endl;
-        inorderTraversalHelper(node->right);
-    }
-
-    void deleteTreeHelper(Node *node)
-    {
-        if (node == NULL)
-        {
-            return;
-        }
-        deleteTreeHelper(node->left);
-        deleteTreeHelper(node->right);
-        delete node;
     }
 
 public:
-    BSTTransaksi()
+    BSTPencarian() { root = NULL; }
+
+    void insert(Pelanggan p) { root = insertRec(root, p); }
+
+    // Parameter pencarian sekarang STRING
+    void cariNama(string nama) { searchRec(root, nama); }
+};
+
+// ==========================================
+// 5. STACK (MEJA PROSES)
+// ==========================================
+struct NodeStack
+{
+    Pelanggan data;
+    NodeStack *next;
+};
+
+class StackProses
+{
+private:
+    NodeStack *top;
+
+public:
+    StackProses() { top = NULL; }
+    bool isEmpty() { return top == NULL; }
+
+    void pushMasukKerja(Pelanggan p)
     {
-        root = NULL;
+        NodeStack *newNode = new NodeStack();
+        newNode->data = p;
+        newNode->data.tahapan = 1;
+        newNode->next = top;
+        top = newNode;
     }
 
-    // Fungsi untuk insert ke BST
-    void insertBST(int id, string nama)
+    void kontrolTahapan(int aksi)
     {
-        root = insertBSTHelper(root, id, nama);
-        cout << "Data transaksi ID " << id << " berhasil ditambahkan ke BST" << endl;
-    }
-
-    // Fungsi untuk search di BST
-    bool searchBST(int id)
-    {
-        Node *hasil = searchBSTHelper(root, id);
-        if (hasil != NULL)
+        if (isEmpty())
         {
-            cout << "Transaksi ditemukan - ID: " << hasil->idTransaksi
-                 << " | Nama: " << hasil->nama << endl;
-            return true;
-        }
-        else
-        {
-            cout << "Transaksi dengan ID " << id << " tidak ditemukan di BST!" << endl;
-            return false;
-        }
-    }
-
-    // Fungsi untuk inorder traversal (Left-Root-Right)
-    void inorderTraversal()
-    {
-        if (root == NULL)
-        {
-            cout << "\nBST kosong!" << endl;
+            cout << "Meja kerja kosong!\n";
             return;
         }
-
-        cout << "\n========== INORDER TRAVERSAL (SORTED) ==========" << endl;
-        inorderTraversalHelper(root);
-        cout << "================================================" << endl;
+        if (aksi == 1)
+        {
+            if (top->data.tahapan < 4)
+            {
+                top->data.tahapan++;
+                cout << ">> Status naik ke: " << getStatusTeks(top->data.tahapan) << endl;
+            }
+            else
+                cout << ">> Sudah Final.\n";
+        }
+        else if (aksi == 2)
+        {
+            if (top->data.tahapan > 1)
+            {
+                top->data.tahapan--;
+                cout << ">> Status mundur ke: " << getStatusTeks(top->data.tahapan) << endl;
+            }
+            else
+                cout << ">> Tidak bisa mundur lagi.\n";
+        }
     }
 
-    // Destructor
-    ~BSTTransaksi()
+    bool isTopFinished() { return (!isEmpty() && top->data.tahapan == 4); }
+
+    Pelanggan popFinal()
     {
-        deleteTreeHelper(root);
+        if (isEmpty())
+        {
+            Pelanggan k;
+            k.id = -1;
+            return k;
+        }
+        NodeStack *temp = top;
+        Pelanggan p = temp->data;
+        top = top->next;
+        delete temp;
+        return p;
+    }
+
+    void infoTop()
+    {
+        if (!isEmpty())
+            cout << "[Top Stack]: " << top->data.nama << " (" << getStatusTeks(top->data.tahapan) << ")\n";
+    }
+
+    void lihatMejaKerja()
+    {
+        cout << "\n=== MEJA KERJA (STACK) ===\n";
+        NodeStack *curr = top;
+        while (curr != NULL)
+        {
+            cout << "-> " << curr->data.nama << " [" << getStatusTeks(curr->data.tahapan) << "]\n";
+            curr = curr->next;
+        }
+    }
+
+    // CEK DUPLIKAT DI STACK
+    bool isNamaExist(string namaCari)
+    {
+        NodeStack *curr = top;
+        while (curr != NULL)
+        {
+            if (curr->data.nama == namaCari)
+                return true;
+            curr = curr->next;
+        }
+        return false;
     }
 };
 
-void tampilMenuUtama()
+// ==========================================
+// 6. QUEUE (ANTRIAN)
+// ==========================================
+struct NodeQueue
 {
-    cout << "\n========================================" << endl;
-    cout << "   SISTEM LAUNDRY ONLINE - WASHMATE" << endl;
-    cout << "========================================" << endl;
-    cout << "1. Input Transaksi" << endl;
-    cout << "2. Proses Transaksi" << endl;
-    cout << "3. Lihat Riwayat Transaksi" << endl;
-    cout << "4. Lihat Riwayat Proses" << endl;
-    cout << "5. Cari Transaksi" << endl;
-    cout << "6. Keluar" << endl;
-    cout << "========================================" << endl;
-    cout << "Pilihan: ";
-}
+    Pelanggan data;
+    NodeQueue *next;
+};
 
-void inputTransaksi(QueuePelanggan &antrian, HistoriTransaksi &riwayat, MenuArray &menu, BSTTransaksi &bst)
+class QueueAntrian
 {
-    int id;
-    string nama;
-    int nomorLayanan;
-    string layanan;
-    float berat;
-    int totalHarga;
+private:
+    NodeQueue *front, *rear;
 
-    cout << "\n===== INPUT TRANSAKSI BARU =====" << endl;
+public:
+    QueueAntrian() { front = rear = NULL; }
+    bool isEmpty() { return front == NULL; }
 
-    cout << "Masukkan ID transaksi: ";
-    cin >> id;
-    cin.ignore();
-
-    cout << "Masukkan nama pelanggan: ";
-    getline(cin, nama);
-
-    cout << "Pilih nomor layanan (1-" << menu.getJumlahLayanan() << "): ";
-    cin >> nomorLayanan;
-    cin.ignore();
-
-    layanan = menu.getNamaLayananByNomor(nomorLayanan);
-    if (layanan == "")
+    void enqueue(Pelanggan p)
     {
-        cout << "Nomor layanan tidak valid!" << endl;
-        return;
-    }
-
-    cout << "Masukkan berat pakaian (kg): ";
-    cin >> berat;
-
-    int hargaLayanan = menu.getHargaByNomor(nomorLayanan);
-    totalHarga = (int)(berat * hargaLayanan);
-
-    cout << "Total Harga: Rp" << totalHarga << endl;
-
-    // Tambah ke queue antrian
-    antrian.enqueue(id, nama, layanan);
-
-    // Tambah ke riwayat transaksi
-    riwayat.tambahTransaksi(id, nama, layanan, berat, totalHarga);
-
-    // Tambah ke BST
-    bst.insertBST(id, nama);
-
-    cout << "Transaksi berhasil diinput!" << endl;
-}
-
-void prosesTransaksi(QueuePelanggan &antrian, StackProses &stackProses)
-{
-    cout << "\n===== PROSES TRANSAKSI =====" << endl;
-
-    Pelanggan *pelanggan = antrian.dequeue();
-
-    if (pelanggan != NULL)
-    {
-        cout << "\nMasukkan tahap proses untuk " << pelanggan->nama << ":" << endl;
-        cout << "1. Pemeriksaan Pakaian" << endl;
-        cout << "2. Pencucian" << endl;
-        cout << "3. Pengeringan" << endl;
-        cout << "4. Setrika" << endl;
-        cout << "5. Pembungkusan" << endl;
-
-        int pilih;
-        cout << "Pilih tahap (1-5): ";
-        cin >> pilih;
-        cin.ignore();
-
-        string tahap;
-        switch (pilih)
+        NodeQueue *newNode = new NodeQueue();
+        p.tahapan = 0;
+        newNode->data = p;
+        newNode->next = NULL;
+        if (isEmpty())
+            front = rear = newNode;
+        else
         {
-        case 1:
-            tahap = "Pemeriksaan Pakaian";
-            break;
-        case 2:
-            tahap = "Pencucian";
-            break;
-        case 3:
-            tahap = "Pengeringan";
-            break;
-        case 4:
-            tahap = "Setrika";
-            break;
-        case 5:
-            tahap = "Pembungkusan";
-            break;
-        default:
-            cout << "Pilihan tidak valid!" << endl;
-            return;
+            rear->next = newNode;
+            rear = newNode;
         }
-
-        stackProses.pushProses(tahap + " - " + pelanggan->nama);
-        delete pelanggan;
     }
-}
 
-void lihatRiwayatTransaksi(HistoriTransaksi &riwayat)
-{
-    cout << "\n";
-    riwayat.tampilHistori();
-}
+    Pelanggan dequeue()
+    {
+        if (isEmpty())
+        {
+            Pelanggan p;
+            p.id = -1;
+            return p;
+        }
+        NodeQueue *temp = front;
+        Pelanggan p = temp->data;
+        front = front->next;
+        if (front == NULL)
+            rear = NULL;
+        delete temp;
+        return p;
+    }
 
-void lihatRiwayatProses(StackProses &stackProses)
-{
-    cout << "\n";
-    stackProses.tampilProses();
-}
+    void lihatAntrian()
+    {
+        cout << "\n=== ANTRIAN (QUEUE) ===\n";
+        NodeQueue *temp = front;
+        while (temp != NULL)
+        {
+            cout << "-> " << temp->data.nama << endl;
+            temp = temp->next;
+        }
+    }
 
-void cariTransaksi(HistoriTransaksi &riwayat)
-{
-    int id;
-    cout << "\n===== CARI TRANSAKSI =====" << endl;
-    cout << "Masukkan ID transaksi yang dicari: ";
-    cin >> id;
-    cin.ignore();
-    cout << endl;
-    riwayat.cariTransaksiByID(id);
-}
+    // CEK DUPLIKAT DI QUEUE
+    bool isNamaExist(string namaCari)
+    {
+        NodeQueue *temp = front;
+        while (temp != NULL)
+        {
+            if (temp->data.nama == namaCari)
+                return true;
+            temp = temp->next;
+        }
+        return false;
+    }
+};
 
+// ==========================================
+// MAIN PROGRAM
+// ==========================================
 int main()
 {
-    MenuArray menu;
-    QueuePelanggan antrian;
-    HistoriTransaksi riwayat;
-    StackProses stackProses;
-    BSTTransaksi bst;
+    ManajemenMenu menu;
+    menu.tambahMenu("Cuci Komplit", 6000);
+    menu.tambahMenu("Cuci Kilat", 10000);
+    menu.tambahMenu("Setrika Saja", 4000);
 
-    // Setup menu layanan default
-    menu.tambahLayanan("Cuci Kering", 7000);
-    menu.tambahLayanan("Setrika", 5000);
-    menu.tambahLayanan("Cuci Selimut", 15000);
-    menu.tambahLayanan("Express", 12000);
+    QueueAntrian q;
+    StackProses s;
+    LinkedListArsip ll;
+    BSTPencarian bst;
 
-    // Tampilkan menu layanan di awal
-    menu.tampilMenu();
-
-    int pilihan;
+    int pilihan, idGen = 1001;
 
     while (true)
     {
-        tampilMenuUtama();
+        cout << "\n=============================================";
+        cout << "\n   SISTEM LAUNDRY (Unique Name & BST Name)";
+        cout << "\n=============================================";
+        cout << "\n1. Pelanggan Baru";
+        cout << "\n2. Proses Antrian (Q -> S)";
+        cout << "\n3. Update Status (Stack)";
+        cout << "\n4. Selesai & Arsip (S -> LL & BST)";
+        cout << "\n5. Monitoring";
+        cout << "\n6. Cari Nama (BST)";
+        cout << "\n7. Keluar";
+        cout << "\nPilihan: ";
         cin >> pilihan;
-        cin.ignore();
 
         if (pilihan == 1)
         {
-            inputTransaksi(antrian, riwayat, menu, bst);
+            Pelanggan p;
+            p.id = idGen++;
+
+            // --- VALIDASI NAMA UNIK ---
+            bool namaValid = false;
+            do
+            {
+                cout << "\nMasukkan Nama Pelanggan : ";
+                cin.ignore();
+                getline(cin, p.nama);
+
+                // Cek di semua tempat (Queue, Stack, Linked List)
+                if (q.isNamaExist(p.nama) || s.isNamaExist(p.nama) || ll.isNamaExist(p.nama))
+                {
+                    cout << "ERROR: Nama '" << p.nama << "' sudah ada di sistem! Harap gunakan nama lain.\n";
+                }
+                else
+                {
+                    namaValid = true;
+                }
+            } while (!namaValid);
+            // ---------------------------
+
+            cout << "Nomor Telepon  : ";
+            getline(cin, p.noTelp);
+
+            menu.tampilkanDaftar();
+            cout << "Pilih Layanan (Nomor): ";
+            int pick;
+            cin >> pick;
+
+            if (pick > 0 && pick <= menu.getJumlah())
+            {
+                DetailLayanan selected = menu.getLayanan(pick - 1);
+                p.namaPaket = selected.namaLayanan;
+                int hargaPerKg = selected.hargaPerKg;
+
+                cout << "Berat Laundry (Kg) : ";
+                cin >> p.beratKg;
+                p.totalBayar = (int)(p.beratKg * hargaPerKg);
+                cout << ">> Total Bayar: Rp " << p.totalBayar << endl;
+
+                q.enqueue(p);
+                cout << "Berhasil Masuk Antrian.\n";
+            }
         }
         else if (pilihan == 2)
         {
-            prosesTransaksi(antrian, stackProses);
+            if (!q.isEmpty())
+            {
+                Pelanggan p = q.dequeue();
+                s.pushMasukKerja(p);
+            }
+            else
+                cout << "Antrian Kosong.\n";
         }
         else if (pilihan == 3)
         {
-            lihatRiwayatTransaksi(riwayat);
+            if (!s.isEmpty())
+            {
+                s.infoTop();
+                cout << "   [1] Next Step  [2] Undo Step: ";
+                int sub;
+                cin >> sub;
+                s.kontrolTahapan(sub);
+            }
+            else
+                cout << "Stack Kosong.\n";
         }
         else if (pilihan == 4)
         {
-            lihatRiwayatProses(stackProses);
+            if (s.isEmpty())
+                cout << "Stack Kosong.\n";
+            else if (s.isTopFinished())
+            {
+                Pelanggan p = s.popFinal();
+                ll.simpanPermanen(p); // Simpan ke Laporan
+                bst.insert(p);        // Indexing ke BST berdasarkan Nama
+                cout << "Data berhasil diarsipkan.\n";
+            }
+            else
+                cout << "Belum selesai (Status belum Terkirim).\n";
         }
         else if (pilihan == 5)
         {
-            cariTransaksi(riwayat);
+            q.lihatAntrian();
+            s.lihatMejaKerja();
+            ll.tampilkanLaporan();
         }
         else if (pilihan == 6)
         {
-            cout << "\nTerima kasih telah menggunakan WASHMATE!" << endl;
+            string cari;
+            cout << "Masukkan Nama yang dicari: ";
+            cin.ignore();
+            getline(cin, cari);
+            bst.cariNama(cari); // Cari String
+        }
+        else if (pilihan == 7)
+        {
+            ll.saveToFile();
             break;
         }
-        else
-        {
-            cout << "\nPilihan tidak valid! Coba lagi." << endl;
-        }
     }
-
     return 0;
 }
