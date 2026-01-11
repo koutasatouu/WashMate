@@ -12,8 +12,8 @@ struct DetailLayanan
 
 struct Pelanggan
 {
-    int id;      // PRIMARY KEY (UNIK)
-    string nama; // Boleh Duplikat
+    int id;
+    string nama;
     string noTelp;
     string namaPaket;
     float beratKg;
@@ -55,6 +55,10 @@ public:
             daftarMenu[jumlahMenu].hargaPerKg = harga;
             jumlahMenu++;
         }
+        else
+        {
+            cout << "Daftar menu sudah penuh!\n";
+        }
     }
 
     void tampilkanDaftar()
@@ -77,7 +81,10 @@ public:
         return k;
     }
 
-    int getJumlah() { return jumlahMenu; }
+    int getJumlah()
+    {
+        return jumlahMenu;
+    }
 };
 
 // penyelesaian order - linkedlist
@@ -93,7 +100,10 @@ private:
     NodeLL *head;
 
 public:
-    LinkedListArsip() { head = NULL; }
+    LinkedListArsip()
+    {
+        head = NULL;
+    }
 
     void simpanPermanen(Pelanggan p)
     {
@@ -125,8 +135,6 @@ public:
             temp = temp->next;
         }
     }
-
-    // Fungsi isNamaExist DIHAPUS karena nama boleh sama
 };
 
 // binary search tree - pencarian
@@ -140,7 +148,6 @@ class BSTPencarian
 {
 private:
     NodeBST *root;
-
     NodeBST *insertRec(NodeBST *node, Pelanggan p)
     {
         if (node == NULL)
@@ -151,7 +158,6 @@ private:
             return n;
         }
 
-        // LOGIKA SORTING DIGANTI KE ID (Karena ID adalah PK)
         if (p.id < node->data.id)
             node->left = insertRec(node->left, p);
         else if (p.id > node->data.id)
@@ -160,26 +166,21 @@ private:
         return node;
     }
 
-    // Fungsi pencarian diubah menjadi Traversal untuk menemukan SEMUA history nama tersebut
     void searchByNameRec(NodeBST *node, string namaCari, bool &found)
     {
         if (node == NULL)
             return;
-
-        // Cek node saat ini
         if (node->data.nama == namaCari)
         {
             found = true;
             cout << "--------------------------------\n";
-            cout << "ID Order\t: " << node->data.id << endl; // ID Ditampilkan
+            cout << "ID Order\t: " << node->data.id << endl;
             cout << "Nama\t\t: " << node->data.nama << endl;
             cout << "No Telp\t\t: " << node->data.noTelp << endl;
             cout << "Paket\t\t: " << node->data.namaPaket << endl;
             cout << "Status\t\t: " << getStatusTeks(node->data.tahapan) << endl;
         }
 
-        // Karena tree diurutkan berdasarkan ID, nama "Budi" bisa ada di kiri ATAU kanan
-        // Jadi kita harus cek kedua sisi pohon
         searchByNameRec(node->left, namaCari, found);
         searchByNameRec(node->right, namaCari, found);
     }
@@ -283,15 +284,14 @@ public:
 
     void mejaPalingAtas()
     {
-        cout << "\n=== MEJA KERJA ===\n";
+        cout << "\n=== PROSES YANG SEDANG BERJALAN ===\n";
         NodeStack *curr = top;
-        // Menampilkan ID agar jelas
         cout << "-> [ID:" << curr->data.id << "] " << curr->data.nama << " [" << getStatusTeks(curr->data.tahapan) << "] <-\n";
     }
 
     void lihatMejaKerja()
     {
-        cout << "\n=== MEJA KERJA ===\n";
+        cout << "\n=== PROSES YANG SEDANG BERJALAN ===\n";
         NodeStack *curr = top;
         while (curr != NULL)
         {
@@ -299,11 +299,8 @@ public:
             curr = curr->next;
         }
     }
-
-    // isNamaExist DIHAPUS
 };
 
-// queue - antrian
 struct NodeQueue
 {
     Pelanggan data;
@@ -357,16 +354,12 @@ public:
         NodeQueue *temp = front;
         while (temp != NULL)
         {
-            // Tampilkan ID juga
             cout << "-> [ID:" << temp->data.id << "] " << temp->data.nama << " | Rp " << temp->data.totalBayar << endl;
             temp = temp->next;
         }
     }
-
-    // isNamaExist DIHAPUS
 };
 
-// main program
 int main()
 {
     ManajemenMenu menu;
@@ -374,13 +367,14 @@ int main()
     menu.tambahMenu("Cuci Selimut", 7000);
     menu.tambahMenu("Setrika Saja", 4000);
     menu.tambahMenu("Cuci Express", 10000);
+    menu.tambahMenu("Cuci & Setrika", 8000);
 
     QueueAntrian q;
     StackProses s;
     LinkedListArsip ll;
     BSTPencarian bst;
 
-    int pilihan, idGen = 1001; // Ini akan jadi unique key
+    int pilihan, idGen = 1001;
 
     while (true)
     {
@@ -400,10 +394,8 @@ int main()
         if (pilihan == 1)
         {
             Pelanggan p;
-            p.id = idGen++; // ID otomatis bertambah unik
+            p.id = idGen++;
 
-            // Loop Validasi Nama UNIK DIHAPUS.
-            // Langsung input saja karena nama boleh sama.
             cout << "\nMasukkan Nama Pelanggan : ";
             cin.ignore();
             getline(cin, p.nama);
@@ -476,13 +468,13 @@ int main()
             if (s.isEmpty())
             {
                 system("cls");
-                cout << "\nBelum ada pesanan yang selesai\n";
+                cout << "\nTidak ada proses yang berjalan\n";
             }
             else if (s.isTopFinished())
             {
                 Pelanggan p = s.popFinal();
                 ll.simpanPermanen(p);
-                bst.insert(p); // Insert ke BST berdasarkan ID
+                bst.insert(p);
                 system("cls");
                 cout << "=== Pesanan Selesai! ===\n";
                 cout << "Order ID " << p.id << " (" << p.nama << ") Berhasil Disimpan";
@@ -508,7 +500,6 @@ int main()
             cout << "Masukkan Nama yang dicari: ";
             cin.ignore();
             getline(cin, cari);
-            // Akan menampilkan SEMUA order dengan nama tersebut
             bst.cariNama(cari);
         }
         else if (pilihan == 7)
