@@ -1,12 +1,9 @@
 #include <iostream>
 #include <string>
-#include <fstream>
 
 using namespace std;
 
-// ==========================================
-// 1. STRUCT & HELPER
-// ==========================================
+// struck
 struct DetailLayanan
 {
     string namaLayanan;
@@ -16,7 +13,7 @@ struct DetailLayanan
 struct Pelanggan
 {
     int id;
-    string nama; // KEY UTAMA UNTUK BST SEKARANG
+    string nama;
     string noTelp;
     string namaPaket;
     float beratKg;
@@ -24,6 +21,7 @@ struct Pelanggan
     int tahapan;
 };
 
+// untuk status
 string getStatusTeks(int t)
 {
     if (t == 0)
@@ -39,9 +37,7 @@ string getStatusTeks(int t)
     return "Unknown";
 }
 
-// ==========================================
-// 2. CLASS MENU (ARRAY)
-// ==========================================
+// array - menu
 class ManajemenMenu
 {
 private:
@@ -66,8 +62,9 @@ public:
         cout << "\n--- PILIH LAYANAN ---\n";
         for (int i = 0; i < jumlahMenu; i++)
         {
-            cout << i + 1 << ". " << daftarMenu[i].namaLayanan
-                 << " \t[Rp " << daftarMenu[i].hargaPerKg << " /kg]\n";
+            cout << i + 1 << ". ";
+            cout << daftarMenu[i].namaLayanan;
+            cout << " \t[Rp " << daftarMenu[i].hargaPerKg << " / kg]\n";
         }
     }
 
@@ -83,9 +80,7 @@ public:
     int getJumlah() { return jumlahMenu; }
 };
 
-// ==========================================
-// 3. LINKED LIST (ARSIP)
-// ==========================================
+// penyelesaian order - linkedlist
 struct NodeLL
 {
     Pelanggan data;
@@ -130,7 +125,7 @@ public:
         }
     }
 
-    // CEK DUPLIKAT DI ARSIP
+    // cek duplikat di arsip
     bool isNamaExist(string namaCari)
     {
         NodeLL *temp = head;
@@ -143,22 +138,10 @@ public:
         return false;
     }
 
-    void saveToFile()
-    {
-        ofstream file("laporan_final.txt");
-        NodeLL *temp = head;
-        while (temp != NULL)
-        {
-            file << temp->data.id << "|" << temp->data.nama << "|LUNAS" << endl;
-            temp = temp->next;
-        }
-        file.close();
-    }
+    // Fungsi saveToFile() TELAH DIHAPUS
 };
 
-// ==========================================
-// 4. BST (PENCARIAN VIA NAMA) - UPDATED
-// ==========================================
+// binary search tree - pencarian
 struct NodeBST
 {
     Pelanggan data;
@@ -179,7 +162,7 @@ private:
             n->left = n->right = NULL;
             return n;
         }
-        // LOGIKA SORTING BERDASARKAN STRING (Alphabetical)
+        // logika sort
         if (p.nama < node->data.nama)
             node->left = insertRec(node->left, p);
         else if (p.nama > node->data.nama)
@@ -198,14 +181,14 @@ private:
 
         if (node->data.nama == namaCari)
         {
-            cout << "\n=== HASIL PENCARIAN (BST BY NAME) ===\n";
-            cout << "Nama     : " << node->data.nama << endl;
-            cout << "ID       : " << node->data.id << endl;
-            cout << "No Telp  : " << node->data.noTelp << endl;
-            cout << "Paket    : " << node->data.namaPaket << endl;
-            cout << "Status   : " << getStatusTeks(node->data.tahapan) << endl;
+            cout << "\n=== HASIL PENCARIAN ===\n";
+            cout << "Nama\t: " << node->data.nama << endl;
+            cout << "ID\t: " << node->data.id << endl;
+            cout << "No Telp\t: " << node->data.noTelp << endl;
+            cout << "Paket\t: " << node->data.namaPaket << endl;
+            cout << "Status\t: " << getStatusTeks(node->data.tahapan) << endl;
         }
-        // Logic pencarian string (Kiri lebih kecil abjadnya, Kanan lebih besar)
+        // logika pencarian string (di kiri lebih kecil abjadnya, kanan lebih besar)
         else if (namaCari < node->data.nama)
         {
             searchRec(node->left, namaCari);
@@ -217,17 +200,21 @@ private:
     }
 
 public:
-    BSTPencarian() { root = NULL; }
-
-    void insert(Pelanggan p) { root = insertRec(root, p); }
-
-    // Parameter pencarian sekarang STRING
-    void cariNama(string nama) { searchRec(root, nama); }
+    BSTPencarian()
+    {
+        root = NULL;
+    }
+    void insert(Pelanggan p)
+    {
+        root = insertRec(root, p);
+    }
+    void cariNama(string nama)
+    {
+        searchRec(root, nama);
+    }
 };
 
-// ==========================================
-// 5. STACK (MEJA PROSES)
-// ==========================================
+// stack - proses
 struct NodeStack
 {
     Pelanggan data;
@@ -250,6 +237,8 @@ public:
         newNode->data.tahapan = 1;
         newNode->next = top;
         top = newNode;
+        system("cls");
+        cout << "\nAntrian " << top->data.nama << " di proses!\n";
     }
 
     void kontrolTahapan(int aksi)
@@ -264,24 +253,27 @@ public:
             if (top->data.tahapan < 4)
             {
                 top->data.tahapan++;
-                cout << ">> Status naik ke: " << getStatusTeks(top->data.tahapan) << endl;
+                cout << ">> Status Baru : " << getStatusTeks(top->data.tahapan) << endl;
             }
             else
-                cout << ">> Sudah Final.\n";
+                cout << ">> Sudah Selesai\n";
         }
         else if (aksi == 2)
         {
             if (top->data.tahapan > 1)
             {
                 top->data.tahapan--;
-                cout << ">> Status mundur ke: " << getStatusTeks(top->data.tahapan) << endl;
+                cout << ">> Status mundur ke : " << getStatusTeks(top->data.tahapan) << endl;
             }
             else
-                cout << ">> Tidak bisa mundur lagi.\n";
+                cout << ">> Tidak bisa mundur lagi\n";
         }
     }
 
-    bool isTopFinished() { return (!isEmpty() && top->data.tahapan == 4); }
+    bool isTopFinished()
+    {
+        return (!isEmpty() && top->data.tahapan == 4);
+    }
 
     Pelanggan popFinal()
     {
@@ -298,6 +290,7 @@ public:
         return p;
     }
 
+    // fungsi sementara untuk cek top stack
     void infoTop()
     {
         if (!isEmpty())
@@ -306,7 +299,7 @@ public:
 
     void lihatMejaKerja()
     {
-        cout << "\n=== MEJA KERJA (STACK) ===\n";
+        cout << "\n=== MEJA KERJA ===\n";
         NodeStack *curr = top;
         while (curr != NULL)
         {
@@ -315,7 +308,15 @@ public:
         }
     }
 
-    // CEK DUPLIKAT DI STACK
+    void mejaPalingAtas()
+    {
+        cout << "\n=== MEJA KERJA ===\n";
+        NodeStack *curr = top;
+
+        cout << "-> " << curr->data.nama << " [" << getStatusTeks(curr->data.tahapan) << "] <-\n";
+    }
+
+    // cek duplikat di stack
     bool isNamaExist(string namaCari)
     {
         NodeStack *curr = top;
@@ -329,9 +330,7 @@ public:
     }
 };
 
-// ==========================================
-// 6. QUEUE (ANTRIAN)
-// ==========================================
+// queue - antrian
 struct NodeQueue
 {
     Pelanggan data;
@@ -385,12 +384,12 @@ public:
         NodeQueue *temp = front;
         while (temp != NULL)
         {
-            cout << "-> " << temp->data.nama << endl;
+            cout << "-> " << temp->data.nama << " | " << temp->data.beratKg << " Kg | Rp " << temp->data.totalBayar << endl;
             temp = temp->next;
         }
     }
 
-    // CEK DUPLIKAT DI QUEUE
+    // cek duplikat di queue
     bool isNamaExist(string namaCari)
     {
         NodeQueue *temp = front;
@@ -404,15 +403,14 @@ public:
     }
 };
 
-// ==========================================
-// MAIN PROGRAM
-// ==========================================
+// main program
 int main()
 {
     ManajemenMenu menu;
-    menu.tambahMenu("Cuci Komplit", 6000);
-    menu.tambahMenu("Cuci Kilat", 10000);
+    menu.tambahMenu("Cuci Komplit", 5000);
+    menu.tambahMenu("Cuci Selimut", 7000);
     menu.tambahMenu("Setrika Saja", 4000);
+    menu.tambahMenu("Cuci Express", 10000);
 
     QueueAntrian q;
     StackProses s;
@@ -423,15 +421,15 @@ int main()
 
     while (true)
     {
-        cout << "\n=============================================";
-        cout << "\n   SISTEM LAUNDRY (Unique Name & BST Name)";
-        cout << "\n=============================================";
+        cout << "\n======================================";
+        cout << "\n\tSISTEM LAUNDRY WASHMATE";
+        cout << "\n======================================";
         cout << "\n1. Pelanggan Baru";
-        cout << "\n2. Proses Antrian (Q -> S)";
-        cout << "\n3. Update Status (Stack)";
-        cout << "\n4. Selesai & Arsip (S -> LL & BST)";
+        cout << "\n2. Proses Antrian";
+        cout << "\n3. Update Status";
+        cout << "\n4. Selesai & Arsip";
         cout << "\n5. Monitoring";
-        cout << "\n6. Cari Nama (BST)";
+        cout << "\n6. Cari Nama";
         cout << "\n7. Keluar";
         cout << "\nPilihan: ";
         cin >> pilihan;
@@ -441,7 +439,7 @@ int main()
             Pelanggan p;
             p.id = idGen++;
 
-            // --- VALIDASI NAMA UNIK ---
+            // validasi nama unique
             bool namaValid = false;
             do
             {
@@ -449,7 +447,7 @@ int main()
                 cin.ignore();
                 getline(cin, p.nama);
 
-                // Cek di semua tempat (Queue, Stack, Linked List)
+                // cek di semua tempat
                 if (q.isNamaExist(p.nama) || s.isNamaExist(p.nama) || ll.isNamaExist(p.nama))
                 {
                     cout << "ERROR: Nama '" << p.nama << "' sudah ada di sistem! Harap gunakan nama lain.\n";
@@ -459,13 +457,15 @@ int main()
                     namaValid = true;
                 }
             } while (!namaValid);
-            // ---------------------------
 
             cout << "Nomor Telepon  : ";
             getline(cin, p.noTelp);
 
+            system("cls");
+            cout << "---   PELANGGAN   ---\n";
+            cout << "Pelanggan Saat Ini : " << p.nama;
             menu.tampilkanDaftar();
-            cout << "Pilih Layanan (Nomor): ";
+            cout << "\nPilih Layanan : ";
             int pick;
             cin >> pick;
 
@@ -478,10 +478,16 @@ int main()
                 cout << "Berat Laundry (Kg) : ";
                 cin >> p.beratKg;
                 p.totalBayar = (int)(p.beratKg * hargaPerKg);
-                cout << ">> Total Bayar: Rp " << p.totalBayar << endl;
-
+                system("cls");
+                cout << "======================================";
+                cout << "\nStruk Pembayaran WashMate";
+                cout << "\n======================================";
+                cout << "\nNama Pelanggan\t: " << p.nama;
+                cout << "\nLayanan\t\t: " << p.namaPaket;
+                cout << "\nBerat Laundry\t: " << p.beratKg << " Kg";
+                cout << "\nTotal Bayar\t: Rp " << p.totalBayar << endl;
                 q.enqueue(p);
-                cout << "Berhasil Masuk Antrian.\n";
+                cout << "Berhasil Masuk Antrian!";
             }
         }
         else if (pilihan == 2)
@@ -492,37 +498,52 @@ int main()
                 s.pushMasukKerja(p);
             }
             else
-                cout << "Antrian Kosong.\n";
+                cout << "\nAntrian Kosong.\n";
         }
         else if (pilihan == 3)
         {
             if (!s.isEmpty())
             {
-                s.infoTop();
-                cout << "   [1] Next Step  [2] Undo Step: ";
+                system("cls");
+                s.mejaPalingAtas();
+                cout << "\n[1] Lanjutkan Tahapan\n";
+                cout << "[2] Mundur Tahapan\n";
+                cout << "Pilih Aksi: ";
                 int sub;
                 cin >> sub;
                 s.kontrolTahapan(sub);
             }
             else
-                cout << "Stack Kosong.\n";
+            {
+                system("cls");
+                cout << "\nTidak ada proses saat ini.\n";
+            }
         }
         else if (pilihan == 4)
         {
             if (s.isEmpty())
-                cout << "Stack Kosong.\n";
+            {
+                system("cls");
+                cout << "\nBelum ada pesanan yang selesai\n";
+            }
             else if (s.isTopFinished())
             {
                 Pelanggan p = s.popFinal();
-                ll.simpanPermanen(p); // Simpan ke Laporan
-                bst.insert(p);        // Indexing ke BST berdasarkan Nama
-                cout << "Data berhasil diarsipkan.\n";
+                ll.simpanPermanen(p);
+                bst.insert(p);
+                system("cls");
+                cout << "=== Pesanan Selesai! ===\n";
+                cout << "Data " << p.nama << " Berhasil Disimpan";
             }
             else
-                cout << "Belum selesai (Status belum Terkirim).\n";
+            {
+                system("cls");
+                cout << "\nBelum ada pesanan yang selesai\n";
+            }
         }
         else if (pilihan == 5)
         {
+            system("cls");
             q.lihatAntrian();
             s.lihatMejaKerja();
             ll.tampilkanLaporan();
@@ -530,14 +551,16 @@ int main()
         else if (pilihan == 6)
         {
             string cari;
+            system("cls");
+            cout << "\n=== PENCARIAN NAMA PELANGGAN (YANG SUDAH SELESAI) ===\n";
             cout << "Masukkan Nama yang dicari: ";
             cin.ignore();
             getline(cin, cari);
-            bst.cariNama(cari); // Cari String
+            bst.cariNama(cari);
         }
         else if (pilihan == 7)
         {
-            ll.saveToFile();
+            cout << "Keluar dari program. Data di-reset.\n";
             break;
         }
     }
