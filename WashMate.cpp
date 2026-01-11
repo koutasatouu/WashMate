@@ -45,7 +45,10 @@ private:
     int jumlahMenu;
 
 public:
-    ManajemenMenu() { jumlahMenu = 0; }
+    ManajemenMenu()
+    {
+        jumlahMenu = 0;
+    }
 
     void tambahMenu(string nama, int harga)
     {
@@ -129,8 +132,7 @@ public:
         NodeLL *temp = head;
         while (temp != NULL)
         {
-            // Menampilkan ID juga agar terlihat bedanya walau nama sama
-            cout << "[ID:" << temp->data.id << "] " << temp->data.nama
+            cout << "-> [ID:" << temp->data.id << "] " << temp->data.nama
                  << " | Rp" << temp->data.totalBayar << endl;
             temp = temp->next;
         }
@@ -482,7 +484,7 @@ int main()
             else
             {
                 system("cls");
-                cout << "\nPesanan paling atas belum status 'Selesai/Terkirim'\n";
+                cout << "\nPesanan belum Selesai/Terkirim\n";
             }
         }
         else if (pilihan == 5)
@@ -504,7 +506,7 @@ int main()
         }
         else if (pilihan == 7)
         {
-            cout << "Keluar dari program. Data di-reset.\n";
+            cout << "Terimakasih.\n";
             break;
         }
     }
